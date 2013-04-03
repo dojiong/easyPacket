@@ -75,11 +75,7 @@ PyObject* readpacket(PyObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "i", &p))
         RAISE("argument error!")
     
-    Py_BEGIN_ALLOW_THREADS
     packet = pcap_next(p, &h);
-    Py_END_ALLOW_THREADS
-    if(packet == NULL)
-        RAISE(pcap_geterr(p))
     
     data = PyBytes_FromStringAndSize(packet, h.len);
     if(data == NULL)
@@ -105,8 +101,10 @@ PyObject* filter(PyObject *self, PyObject *args) {
     if(pcap_compile(p, fp, str, optimize, netmask))
         RAISE(pcap_geterr(p))
     
-    if(pcap_setfilter(p, fp))
+    if(pcap_setfilter(p, fp)){
+        printf("set fail\n");   
         RAISE(pcap_geterr(p))
+    }
     
     return Py_BuildValue("i", fp);
 }
@@ -117,6 +115,7 @@ PyObject* freecode(PyObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "i", &fp))
         RAISE("argument error!")
     pcap_freecode(fp);
+    free(fp);
     
     Py_RETURN_NONE;
 }

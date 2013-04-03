@@ -9,9 +9,9 @@ class DecodeError(Exception):
 
 
 mac_from_bin = lambda m: ':'.join(map(lambda x: '%02X' % ord(x), m))
-mac_to_bin = lambda m: ''.join(map(lambda x: chr(eval('0x'+x)), m.split(':')))
+mac_to_bin = lambda m: bytes(map(lambda x: eval('0x'+x), m.split(':')))
 ip_from_bin = lambda i: '.'.join(map(lambda x: str(ord(x)), i))
-ip_to_bin = lambda addr: ''.join(map(lambda x: chr(int(x)), addr.split('.')))
+ip_to_bin = lambda addr: bytes(map(lambda x: int(x), addr.split('.')))
 
 
 def decodeEther(data):

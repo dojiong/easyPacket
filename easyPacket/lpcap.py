@@ -8,7 +8,7 @@ import struct
 from protocol import *
 
 
-class Packet(str):
+class Packet(bytes):
     def decode(self, ptl):
         if ptl == 'arp':
             if len(self) < 14+28:
@@ -17,7 +17,7 @@ class Packet(str):
             arp = decodeARP4(self[14:14+28])
             arp['ether'] = ether
             return arp
-        return str.decode(self, ptl)
+        return super(Packet, self).decode(pkt)
 
 
 class Pcap(object):
