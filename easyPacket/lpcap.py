@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #! -*- coding: utf8 -*-
 
-import LoCPcap as cpcap
+import locpcap as cpcap
 from datetime import datetime
 from threading import Thread
 import struct
@@ -20,7 +20,7 @@ class Packet(str):
         return str.decode(self, ptl)
 
 
-class LPcap(object):
+class Pcap(object):
     def __init__(self, device, snaplen=65535,
                  promisc=False, to_ms=0):
         self._p = cpcap.open(device, snaplen, promisc, to_ms)

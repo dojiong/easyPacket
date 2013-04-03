@@ -12,8 +12,7 @@
 #define RAISE(msg) \
 	{PyErr_SetString(PyExc_Exception,msg); return NULL;}
 
-PyObject* open_live(PyObject *self, PyObject *args)
-{
+PyObject* open_live(PyObject *self, PyObject *args) {
     int snaplen;//the maximum number of bytes to capture
     int promisc;//whether the interface is to be put into promiscuous mode
     int to_ms;//the read timeout in milliseconds
@@ -33,8 +32,7 @@ PyObject* open_live(PyObject *self, PyObject *args)
     return Py_BuildValue("i", handler);
 }
 
-PyObject* lclose(PyObject *self, PyObject *args)
-{
+PyObject* lclose(PyObject *self, PyObject *args) {
     pcap_t *p;
     
     if (!PyArg_ParseTuple(args, "i", &p))
@@ -45,8 +43,7 @@ PyObject* lclose(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-PyObject* geterr(PyObject *self, PyObject *args)
-{
+PyObject* geterr(PyObject *self, PyObject *args) {
     pcap_t *p;
     
     if (!PyArg_ParseTuple(args, "i", &p))
@@ -55,23 +52,21 @@ PyObject* geterr(PyObject *self, PyObject *args)
     return Py_BuildValue("s", pcap_geterr(p));
 }
 
-PyObject* sendpacket(PyObject *self, PyObject *args)
-{
+PyObject* sendpacket(PyObject *self, PyObject *args) {
     pcap_t *p;
     PyObject *str;
     
     if (!PyArg_ParseTuple(args, "iO", &p, &str))
         RAISE("argument error!")
-    if (!PyString_Check(str))
-        RAISE("packet must be a str")
-    if (pcap_sendpacket(p, PyString_AsString(str), PyString_Size(str)))
+    if (!PyBytes_Check(str))
+        RAISE("packet must be a bytes")
+    if (pcap_sendpacket(p, PyBytes_AsString(str), PyBytes_Size(str)))
         RAISE(pcap_geterr(p))
     
     Py_RETURN_NONE;
 }
 
-PyObject* readpacket(PyObject *self, PyObject *args)
-{
+PyObject* readpacket(PyObject *self, PyObject *args) {
     pcap_t *p;
     struct pcap_pkthdr h;
     u_char *packet;
@@ -86,7 +81,7 @@ PyObject* readpacket(PyObject *self, PyObject *args)
     if(packet == NULL)
         RAISE(pcap_geterr(p))
     
-    data = PyString_FromStringAndSize(packet, h.len);
+    data = PyBytes_FromStringAndSize(packet, h.len);
     if(data == NULL)
         RAISE("bild packet failure!")
     
@@ -96,8 +91,7 @@ PyObject* readpacket(PyObject *self, PyObject *args)
                 );
 }
 
-PyObject* filter(PyObject *self, PyObject *args)
-{
+PyObject* filter(PyObject *self, PyObject *args) {
     pcap_t *p;
     struct bpf_program *fp;
     const char *str;
@@ -117,8 +111,7 @@ PyObject* filter(PyObject *self, PyObject *args)
     return Py_BuildValue("i", fp);
 }
 
-PyObject* freecode(PyObject *self, PyObject *args)
-{
+PyObject* freecode(PyObject *self, PyObject *args) {
     struct bpf_program *fp;
     
     if (!PyArg_ParseTuple(args, "i", &fp))
@@ -128,8 +121,7 @@ PyObject* freecode(PyObject *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
-PyObject *getaddr(PyObject *self, PyObject *args)
-{
+PyObject *getaddr(PyObject *self, PyObject *args) {
     char *device;
     unsigned char macaddr[6];
     int s = socket(AF_INET,SOCK_DGRAM,0);
@@ -151,10 +143,10 @@ PyObject *getaddr(PyObject *self, PyObject *args)
     close(s);
     
     return Py_BuildValue("(i,O)", ip,
-                PyString_FromStringAndSize(macaddr, 6));
+                PyBytes_FromStringAndSize(macaddr, 6));
 }
 
-static PyMethodDef LoCPcapMethods[]={                  
+static PyMethodDef LoCPcapMethods[] = {                  
     {"open", open_live, METH_VARARGS, "pcap_open_live"},
     {"close", lclose, METH_VARARGS, "pcap_close"},
     {"geterr", geterr, METH_VARARGS, "pcap_geterr"},
@@ -166,11 +158,17 @@ static PyMethodDef LoCPcapMethods[]={
     {NULL, NULL, 0, NULL}
 };
 
-PyMODINIT_FUNC initLoCPcap(void)
-{
-    (void) Py_InitModule("LoCPcap",LoCPcapMethods);
+static struct PyModuleDef module = {
+   PyModuleDef_HEAD_INIT,
+   "locpcap", "doc", -1, LoCPcapMethods
+};
+
+PyMODINIT_FUNC PyInit_locpcap(void) {
+    PyObject *m;
+
+    m = PyModule_Create(&module);
+    if (m == NULL)
+        return NULL;
+
+    return m;
 }
-
-
-
-
